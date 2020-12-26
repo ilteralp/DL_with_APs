@@ -101,46 +101,6 @@ class RSDataset(Dataset):
             self.ap_dir = osp.join(self.img_dir, 'split_APs')
             self.ann_path = osp.join(self.img_dir, self.mode + "_" + self.split + ".png" )
             
-    # """
-    # Sets paths for given dataset name. 
-    # """
-    # def _set_paths(self):
-    #     if self.name == 'reykjavik':
-    #         self.img_dir = C.REYKJAVIK_DIR_PATH
-    #         self.pc_paths = [osp.join(self.img_dir, 'pan')]
-    #         if self.split == 'original':
-    #             self.ap_dir = osp.join(self.img_dir, 'APs')
-    #             self.ap_paths = [osp.join(self.img_dir, 'APs', 'a_area=' + str(t) + '_pca=1.png') for t in C.REY_TS]
-    #             if self.mode == 'train':
-    #                 self.ann_path = osp.join(self.img_dir, 'train.png')
-    #             elif self.mode == 'test':
-    #                 self.ann_path = osp.join(self.img_dir, 'GT.png')
-    #         else:
-    #             self.ap_paths = [osp.join(self.img_dir, 'split_APs', 'a_area=' + str(i) + '_pca=1_' + \
-    #                                       self.split + '_' + self.mode + '.png') for i in self.ts]
-
-    #     elif self.name == 'pavia':
-    #         self.img_dir = C.PAVIA_DIR_PATH
-    #         self.pc_paths = [osp.join(self.img_dir, 'paviaPCA' + str(i)) for i in range(1, 5)]
-    #         if self.split == 'original':
-    #             self.ap_dir = osp.join(self.img_dir, 'APs')
-    #             self.ap_paths = [osp.join(self.img_dir, 'APs', 'a_area=' + str(t) + '_pca=' + str(i) + \
-    #                                       '.png') for t in C.PAV_TS for i in range(1, 5)]
-    #             if self.mode == 'train':
-    #                 self.ann_path = osp.join(self.img_dir, 'Train_University.bmp')
-    #             elif self.mode == 'test':
-    #                 self.ann_path = osp.join(self.img_dir, 'Test_University.bmp')
-    #         else:
-    #             self.ap_paths = [osp.join(self.img_dir, 'split_APs', 'a_area=' + str(t) + '_pca=' + str(i) + '_' \
-    #                                       + self.split + '_' + self.mode + '.png') for t in self.ts for i in range(1, 5)]
-        
-    #     if self.split != 'original':
-    #         self.ann_path = osp.join(self.img_dir, self.mode + "_" + self.split + ".png" )
-    #         self.pc_paths = [p + '_' + self.split + '_' + self.mode for p in self.pc_paths]
-    #         self.ap_dir = osp.join(self.img_dir, 'split_APs')
-            
-    #     self.pc_paths = [p + '.png' for p in self.pc_paths]
-        
     """
     Loads labeled points from given set for given split. 
     """
