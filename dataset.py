@@ -52,7 +52,7 @@ class RSDataset(Dataset):
         if self.transform:
             patch = self.transform(patch)
             
-        return patch, self.labels[index], p
+        return torch.from_numpy(patch).float(), torch.from_numpy(self.labels[index]).long(), p
 
     """
     Checks and removes samples of a class in case of they are in insufficient number. 
