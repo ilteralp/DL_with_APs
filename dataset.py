@@ -12,6 +12,7 @@ import torch
 from torch.utils.data import Dataset
 from skimage import io
 import matplotlib.pyplot as plt
+from collections import Counter
 import constants as C
 
 """
@@ -52,7 +53,7 @@ class RSDataset(Dataset):
         if self.transform:
             patch = self.transform(patch)
             
-        return torch.from_numpy(patch).float(), torch.from_numpy(self.labels[index]).long(), p
+        return torch.from_numpy(patch).float(), torch.tensor(self.labels[index]), p
 
     """
     Checks and removes samples of a class in case of they are in insufficient number. 
@@ -69,12 +70,11 @@ class RSDataset(Dataset):
                     inds = [i for i, label in enumerate(self.labels) if label in C.PAV_HOR_REMOVE_LABELS]
                 elif self.split == 'vertical':
                     inds = [i for i, label in enumerate(self.labels) if label in C.PAV_VER_REMOVE_LABELS]
-        
-        for i in inds:
-            mask[i] = False
-        
-        self.labels = np.array(self.labels)[mask]                               # Remove eliminated class samples.
-        self.ps = np.array(self.ps)[mask]
+            for i in inds:
+                mask[i] = False
+            
+            self.labels = np.array(self.labels)[mask]                           # Remove eliminated class samples.
+            self.ps = np.array(self.ps)[mask]
     
     def _set_paths(self):
         if self.name == 'reykjavik':
@@ -161,8 +161,11 @@ class RSDataset(Dataset):
         for i in range(self.c):
             for j, ap in enumerate(self.aps[i]):
                 patch[i][j] = ap[tl_x : tl_x + self.patch_size, tl_y : tl_y + self.patch_size]
+                patch[i][j] = patch[i][j] - patch[i][j].mean()
             patch[i][len(self.ts)] = self.pcs[i][tl_x : tl_x + self.patch_size, tl_y : tl_y + self.patch_size]
+            patch[i][len(self.ts)] = patch[i][len(self.ts)] - patch[i][len(self.ts)].mean()
         return patch
 
 # reykTr = RSDataset(name='reykjavik', mode='train', split='original')
 # pavHorTest = RSDataset(name='pavia', mode='test', split='horizontal')
+# sorted(Counter(pavHorTest.labels).items())
