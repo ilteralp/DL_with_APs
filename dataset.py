@@ -10,6 +10,7 @@ import os
 import os.path as osp
 import torch
 from torch.utils.data import Dataset
+from torchvision import transforms
 from skimage import io
 import matplotlib.pyplot as plt
 from collections import Counter
@@ -42,7 +43,8 @@ class RSDataset(Dataset):
         self._set_paths()
         self._load_points()
         self.load_imgs()
-        self._check_items()
+        self._remove_underrep_class_samples()
+        self._update_labels()
     
     def __len__(self):
         return len(self.ps)
@@ -50,15 +52,17 @@ class RSDataset(Dataset):
     def __getitem__(self, index):
         p = self.ps[index]
         patch = self.load_patch(p)
+        patch = torch.from_numpy(patch).float()                                 # Convert to PyTorch tensor.
+        
         if self.transform:
             patch = self.transform(patch)
             
-        return torch.from_numpy(patch).float(), torch.tensor(self.labels[index]), p
+        return patch, torch.tensor(self.labels[index])
 
     """
-    Checks and removes samples of a class in case of they are in insufficient number. 
+    Removes samples of a class in case of they are in insufficient number. 
     """
-    def _check_items(self):
+    def _remove_underrep_class_samples(self):
         if self.split != 'original':
             mask = [True] * len(self.labels)
             inds = []
@@ -75,6 +79,35 @@ class RSDataset(Dataset):
             
             self.labels = np.array(self.labels)[mask]                           # Remove eliminated class samples.
             self.ps = np.array(self.ps)[mask]
+            
+    """
+    Updates labels to make them continous in range in case of removal of 
+    insufficient classes' samples and start labels from 0.
+    """
+    def _update_labels(self):
+        if self.split != 'original':
+            if self.name == 'reykjavik':
+                if self.split == 'vertical':                                    # 6 -> 5
+                    for i, label in enumerate(self.labels):
+                        if label == 6:                      self.labels[i] = 5
+            elif self.name == 'pavia':
+                if self.split == 'horizontal':                                  # 4 -> 3, 6 -> 4, 8 -> 5, 9 -> 6
+                    for i, label in enumerate(self.labels):
+                        if label == 4:                      self.labels[i] = 3
+                        elif label == 6:                    self.labels[i] = 4
+                        elif label == 8:                    self.labels[i] = 5
+                        elif label == 9:                    self.labels[i] = 6
+                        
+                elif self.split == 'vertical':                                  # 4 -> 3, 5 -> 4, 6 -> 5, 9 -> 6 
+                    for i, label in enumerate(self.labels):
+                        if label == 4:                      self.labels[i] = 3
+                        elif label == 5:                    self.labels[i] = 4
+                        elif label == 6:                    self.labels[i] = 5
+                        elif label == 9:                    self.labels[i] = 6
+        
+        # Finally start labels from 0. 
+        self.labels = self.labels - 1
+        
     
     def _set_paths(self):
         if self.name == 'reykjavik':
@@ -85,6 +118,10 @@ class RSDataset(Dataset):
                 self.ann_path = osp.join(self.img_dir, 'train.png')
             elif self.mode == 'test':
                 self.ann_path = osp.join(self.img_dir, 'GT.png')
+            if self.split == 'vertical':
+                self.num_classes = 5
+            else:
+                self.num_classes = 6
             
         elif self.name == 'pavia':
             self.c = 4
@@ -94,6 +131,10 @@ class RSDataset(Dataset):
                 self.ann_path = osp.join(self.img_dir, 'Train_University.bmp')
             elif self.mode == 'test':
                 self.ann_path = osp.join(self.img_dir, 'Test_University.bmp')
+            if self.split == 'horizontal' or self.split == 'vertical':
+                self.num_classes = 6
+            else:
+                self.num_classes = 9
         
         if self.split == 'original':
             self.ap_dir = osp.join(self.img_dir, 'APs')
