@@ -29,12 +29,46 @@ python inference.py --name reykjavik \
 # parser.add_argument('--model')
 # args = parser.parse_args()
 
+"""
+Calculates and updates confusion matrix for each batch. 
+"""
+def confusion_matrix(preds, labels, conf_matrix):
+    preds = torch.argmax(preds, 1)
+    for p, t in zip(preds, labels):
+        conf_matrix[p, t] += 1
+    return conf_matrix
+
+"""
+Prints and returns confusion metrics
+"""
+def get_confusion_matrix(conf_matrix):
+    TP = conf_matrix.diag()
+    num_classes = len(conf_matrix)
+    s_TP, s_TN, s_FP, s_FN = 0, 0, 0, 0
+    for c in range(num_classes):
+        idx = torch.ones(num_classes).byte()                                    # Converts to uint8 for accessing indices.
+        idx[c] = 0
+        TN = conf_matrix[idx.nonzero()[:, None], idx.nonzero()].sum()
+        FP = conf_matrix[idx, c].sum()
+        FN = conf_matrix[c, idx].sum()
+        print('Class {}\nTP {}, TN {}, FP {}, FN {}'.format(c, TP[c], TN, FP, FN))
+        s_TP += TP[c]
+        s_TN += TN
+        s_FP += FP
+        s_FN += FN
+    return s_TP, s_TN, s_FP, s_FN
+
 def test():
+    conf_matrix = torch.zeros(test_set.num_classes, test_set.num_classes)
     for batch_samples, batch_labels in test_loader:
         batch_samples, batch_labels = batch_samples.to(device), batch_labels.to(device)
         output = model(batch_samples)
-        print('output[0]:', output[0], 'batch_labels[0]:', batch_labels)
+        conf_matrix = confusion_matrix(output, batch_labels, conf_matrix)
+    TP, TN, FP, FN = get_confusion_matrix(conf_matrix)
+    print('Final, TP {}, TN {}, FP {}, FN {}'.format(TP, TN, FP, FN))
+
         
+
 
 if __name__ == "__main__":
     model_name = 'best'
