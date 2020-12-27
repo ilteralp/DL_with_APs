@@ -16,10 +16,6 @@ import matplotlib.pyplot as plt
 from collections import Counter
 import constants as C
 
-"""
-Both train and test sets should train.png and test.png
-"""
-
 class RSDataset(Dataset):
     r""" Pavia Dataset """
     
@@ -57,7 +53,7 @@ class RSDataset(Dataset):
         if self.transform:
             patch = self.transform(patch)
             
-        return patch, torch.tensor(self.labels[index])
+        return patch, torch.tensor(self.labels[index]).type(torch.LongTensor)
 
     """
     Removes samples of a class in case of they are in insufficient number. 
@@ -105,7 +101,9 @@ class RSDataset(Dataset):
                         elif label == 6:                    self.labels[i] = 5
                         elif label == 9:                    self.labels[i] = 6
         
-        # Finally start labels from 0. 
+        # Finally, start labels from 0. 
+        if isinstance(self.labels, list):
+            self.labels = np.array(self.labels)
         self.labels = self.labels - 1
         
     
@@ -135,6 +133,7 @@ class RSDataset(Dataset):
                 self.num_classes = 6
             else:
                 self.num_classes = 9
+        self.L = len(self.ts) + 1                                               # Thresholds + original PC image. 
         
         if self.split == 'original':
             self.ap_dir = osp.join(self.img_dir, 'APs')
