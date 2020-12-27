@@ -61,8 +61,8 @@ def get_confusion_matrix(conf_matrix):
 
 def test():
     conf_matrix = torch.zeros(test_set.num_classes, test_set.num_classes, dtype=torch.long)
-    all_preds = torch.tensor([], dtype=torch.long)
-    all_labels = torch.tensor([], dtype=torch.long)
+    all_preds = torch.tensor([], dtype=torch.long).to(device)
+    all_labels = torch.tensor([], dtype=torch.long).to(device)
     for batch_samples, batch_labels in test_loader:
         batch_samples, batch_labels = batch_samples.to(device), batch_labels.to(device)
         output = model(batch_samples)
