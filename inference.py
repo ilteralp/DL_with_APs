@@ -75,7 +75,7 @@ def test():
         all_preds = all_preds.cpu()
         all_labels = all_labels.cpu()
     kappa = cohen_kappa_score(all_preds, all_labels)
-    print('shapes:', all_preds.shape, all_labels.shape)
+    print('\nModel:', model_path)
     print('Final, TP {}, TN {}, FP {}, FN {}'.format(TP, TN, FP, FN))
     print('kappa:', kappa)
 
@@ -91,6 +91,7 @@ if __name__ == "__main__":
     test_set = RSDataset(name='reykjavik', mode='test', split='original')
     test_loader = DataLoader(test_set, **params)
     
+    model_path = osp.join(C.MODEL_DIR, test_set.get_model_name() + model_name + '.pth')
     model = APNet(in_channels=test_set.c, num_classes=test_set.num_classes, L=test_set.L).to(device)
-    model.load_state_dict(torch.load(osp.join(C.MODEL_DIR, test_set.get_model_name() + model_name + '.pth')))
+    model.load_state_dict(torch.load(model_path))
     test()
