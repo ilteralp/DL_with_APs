@@ -46,9 +46,9 @@ def get_confusion_matrix(conf_matrix):
     num_classes = len(conf_matrix)
     s_TP, s_TN, s_FP, s_FN = 0, 0, 0, 0
     for c in range(num_classes):
-        idx = torch.ones(num_classes).byte()                                    # Converts to uint8 for accessing indices.
+        idx = torch.ones(num_classes).bool()                                    # Converts to bool for accessing indices.
         idx[c] = 0
-        TN = conf_matrix[idx.nonzero()[:, None], idx.nonzero()].sum()
+        TN = conf_matrix[torch.nonzero(idx)[:, None], torch.nonzero(idx)].sum()
         FP = conf_matrix[idx, c].sum()
         FN = conf_matrix[c, idx].sum()
         print('Class {}\nTP {}, TN {}, FP {}, FN {}'.format(c, TP[c], TN, FP, FN))
@@ -59,16 +59,13 @@ def get_confusion_matrix(conf_matrix):
     return s_TP, s_TN, s_FP, s_FN
 
 def test():
-    conf_matrix = torch.zeros(test_set.num_classes, test_set.num_classes)
+    conf_matrix = torch.zeros(test_set.num_classes, test_set.num_classes, dtype=torch.long)
     for batch_samples, batch_labels in test_loader:
         batch_samples, batch_labels = batch_samples.to(device), batch_labels.to(device)
         output = model(batch_samples)
         conf_matrix = confusion_matrix(output, batch_labels, conf_matrix)
     TP, TN, FP, FN = get_confusion_matrix(conf_matrix)
     print('Final, TP {}, TN {}, FP {}, FN {}'.format(TP, TN, FP, FN))
-
-        
-
 
 if __name__ == "__main__":
     model_name = 'best'
