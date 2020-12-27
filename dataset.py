@@ -205,6 +205,12 @@ class RSDataset(Dataset):
             patch[i][len(self.ts)] = self.pcs[i][tl_x : tl_x + self.patch_size, tl_y : tl_y + self.patch_size]
             patch[i][len(self.ts)] = patch[i][len(self.ts)] - patch[i][len(self.ts)].mean()
         return patch
+    
+    """
+    Returns model name for the dataset.
+    """
+    def get_model_name(self):
+        return self.name + '_' + self.split + '_'
 
 # reykTr = RSDataset(name='reykjavik', mode='train', split='original')
 # pavHorTest = RSDataset(name='pavia', mode='test', split='horizontal')
