@@ -59,6 +59,23 @@ def get_confusion_matrix(conf_matrix):
         s_FN += FN
     return s_TP, s_TN, s_FP, s_FN
 
+    """
+    Takes confusion matrix values and calculates metrics. 
+    """
+    def calc_metrics(TP, TN, FP, FN):
+        acc = (TP + TN) / (TP + TN + FP + FN)
+        precision = TP / (TP + FP)
+        recall = TP / (TP + FN)
+        sensitivity = recall
+        specificity = TN / (TN + FP)
+        f1 =  2 * precision * recall / (precision + recall)
+        print('acc:', acc)
+        print('precision:', precision)
+        print('recall:', recall)
+        print('sensitivity:', sensitivity)
+        print('specificity:', specificity)
+        print('f1:', f1)
+
 def test():
     conf_matrix = torch.zeros(test_set.num_classes, test_set.num_classes, dtype=torch.long)
     all_preds = torch.tensor([], dtype=torch.long).to(device)
@@ -78,6 +95,7 @@ def test():
     print('\nModel:', model_path)
     print('Final, TP {}, TN {}, FP {}, FN {}'.format(TP, TN, FP, FN))
     print('kappa:', kappa)
+    calc_metrics(TP, TN, FP, FN)
 
 if __name__ == "__main__":
     model_name = 'best'
