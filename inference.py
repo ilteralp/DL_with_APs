@@ -12,6 +12,7 @@ from torch.utils.data import DataLoader
 import os.path as osp
 import time
 import argparse
+from scikit.metrics import cohen_kappa_score
 from model import APNet
 from dataset import RSDataset
 import constants as C
@@ -60,12 +61,20 @@ def get_confusion_matrix(conf_matrix):
 
 def test():
     conf_matrix = torch.zeros(test_set.num_classes, test_set.num_classes, dtype=torch.long)
+    all_preds = torch.tensor([], dtype=torch.long)
+    all_labels = torch.tensor([], dtype=torch.long)
     for batch_samples, batch_labels in test_loader:
         batch_samples, batch_labels = batch_samples.to(device), batch_labels.to(device)
         output = model(batch_samples)
         conf_matrix = confusion_matrix(output, batch_labels, conf_matrix)
+        preds = torch.argmax(output, 1)                                         # Convert to (num_samples, num_classes) -> (num_samples)
+        all_preds = torch.cat((all_preds, preds), dim=0)                        # Keep all preds to calculate kappa. 
+        all_labels = torch.cat((all_labels, batch_labels), dim=0)
     TP, TN, FP, FN = get_confusion_matrix(conf_matrix)
+    kappa = cohen_kappa_score(all_preds, all_labels)
+    print('shapes:', all_preds.shape, all_labels.shape)
     print('Final, TP {}, TN {}, FP {}, FN {}'.format(TP, TN, FP, FN))
+    print('kappa:', kappa)
 
 if __name__ == "__main__":
     model_name = 'best'
