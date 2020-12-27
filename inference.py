@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 import os.path as osp
 import time
 import argparse
-from sklearn.metrics import cohen_kappa_score
+from sklearn.metrics import cohen_kappa_score, accuracy_score, precision_score, recall_score, f1_score
 from model import APNet
 from dataset import RSDataset
 import constants as C
@@ -59,23 +59,39 @@ def get_confusion_matrix(conf_matrix):
         s_FN += FN
     return s_TP, s_TN, s_FP, s_FN
 
-"""
-Takes confusion matrix values and calculates metrics. 
-"""
-def calc_metrics(TP, TN, FP, FN):
-    acc = (TP + TN) / (TP + TN + FP + FN)
-    precision = TP / (TP + FP)
-    recall = TP / (TP + FN)
-    sensitivity = recall
-    specificity = TN / (TN + FP)
-    f1 =  2 * precision * recall / (precision + recall)
-    print('acc: {:.4f}'.format(acc.item()))
-    print('precision: {:.4f}'.format(precision.item()))
-    print('recall: {:.4f}'.format(recall.item()))
-    print('sensitivity: {:.4f}'.format(sensitivity.item()))
-    print('specificity: {:.4f}'.format(specificity.item()))
-    print('f1: {:.4f}'.format(f1.item()))
+# """
+# Takes confusion matrix values and calculates metrics. 
+# """
+# def calc_metrics(TP, TN, FP, FN):
+#     acc = (TP + TN) / (TP + TN + FP + FN)
+#     precision = TP / (TP + FP)
+#     recall = TP / (TP + FN)
+#     sensitivity = recall
+#     specificity = TN / (TN + FP)
+#     f1 =  2 * precision * recall / (precision + recall)
+#     print('acc: {:.4f}'.format(acc.item()))
+#     print('precision: {:.4f}'.format(precision.item()))
+#     print('recall: {:.4f}'.format(recall.item()))
+#     print('sensitivity: {:.4f}'.format(sensitivity.item()))
+#     print('specificity: {:.4f}'.format(specificity.item()))
+#     print('f1: {:.4f}'.format(f1.item()))
 
+"""
+Calculates scores using scikit metrics
+"""
+def calc_scores(labels, preds):
+    acc = accuracy_score(labels, preds)
+    precision = precision_score(labels, preds, average='macro')
+    recall = recall_score(labels, preds, average='macro')
+    f1 = f1_score(labels, preds, average='macro')
+    kappa = cohen_kappa_score(labels, preds)
+    print('kappa: {:.4f}'.format(kappa))
+    print('acc: {:.4f}'.format(acc))
+    print('precision: {:.4f}'.format(precision))
+    print('recall: {:.4f}'.format(recall))
+    print('f1: {:.4f}'.format(f1))
+
+    
 def test():
     conf_matrix = torch.zeros(test_set.num_classes, test_set.num_classes, dtype=torch.long)
     all_preds = torch.tensor([], dtype=torch.long).to(device)
@@ -91,11 +107,10 @@ def test():
     if device != 'cpu':
         all_preds = all_preds.cpu()
         all_labels = all_labels.cpu()
-    kappa = cohen_kappa_score(all_preds, all_labels)
+    
     print('\nModel:', model_path)
-    print('Final, TP {}, TN {}, FP {}, FN {}'.format(TP, TN, FP, FN))
-    print('kappa: {:.4f}'.format(kappa))
-    calc_metrics(TP, TN, FP, FN)
+    # print('Final, TP {}, TN {}, FP {}, FN {}'.format(TP, TN, FP, FN))
+    # calc_metrics(TP, TN, FP, FN)
 
 if __name__ == "__main__":
     model_name = 'best'
