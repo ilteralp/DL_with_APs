@@ -69,12 +69,12 @@ def calc_metrics(TP, TN, FP, FN):
     sensitivity = recall
     specificity = TN / (TN + FP)
     f1 =  2 * precision * recall / (precision + recall)
-    print('acc:', acc)
-    print('precision:', precision)
-    print('recall:', recall)
-    print('sensitivity:', sensitivity)
-    print('specificity:', specificity)
-    print('f1:', f1)
+    print('acc: {:.4f}'.format(acc.item()))
+    print('precision: {:.4f}'.format(precision.item()))
+    print('recall: {:.4f}'.format(recall.item()))
+    print('sensitivity: {:.4f}'.format(sensitivity.item()))
+    print('specificity: {:.4f}'.format(specificity.item()))
+    print('f1: {:.4f}'.format(f1.item()))
 
 def test():
     conf_matrix = torch.zeros(test_set.num_classes, test_set.num_classes, dtype=torch.long)
@@ -94,7 +94,7 @@ def test():
     kappa = cohen_kappa_score(all_preds, all_labels)
     print('\nModel:', model_path)
     print('Final, TP {}, TN {}, FP {}, FN {}'.format(TP, TN, FP, FN))
-    print('kappa:', kappa)
+    print('kappa: {:.4f}'.format(kappa))
     calc_metrics(TP, TN, FP, FN)
 
 if __name__ == "__main__":
