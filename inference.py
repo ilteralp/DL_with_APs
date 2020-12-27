@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 import os.path as osp
 import time
 import argparse
-from scikit.metrics import cohen_kappa_score
+from sklearn.metrics import cohen_kappa_score
 from model import APNet
 from dataset import RSDataset
 import constants as C
