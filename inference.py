@@ -82,7 +82,7 @@ if __name__ == "__main__":
     device = torch.device("cuda:0" if use_cuda else "cpu")
     
     params = {'num_workers': 4,
-              'batch_size': 50,
+              'batch_size': 10,
               'shuffle': False}
     
     test_set = RSDataset(name='reykjavik', mode='test', split='original')
