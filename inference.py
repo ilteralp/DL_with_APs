@@ -71,6 +71,9 @@ def test():
         all_preds = torch.cat((all_preds, preds), dim=0)                        # Keep all preds to calculate kappa. 
         all_labels = torch.cat((all_labels, batch_labels), dim=0)
     TP, TN, FP, FN = get_confusion_matrix(conf_matrix)
+    if device != 'cpu':
+        all_preds = all_preds.cpu()
+        all_labels = all_labels.cpu()
     kappa = cohen_kappa_score(all_preds, all_labels)
     print('shapes:', all_preds.shape, all_labels.shape)
     print('Final, TP {}, TN {}, FP {}, FN {}'.format(TP, TN, FP, FN))
