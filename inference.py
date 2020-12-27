@@ -109,6 +109,7 @@ def test():
         all_labels = all_labels.cpu()
     
     print('\nModel:', model_path)
+    calc_scores()
     # print('Final, TP {}, TN {}, FP {}, FN {}'.format(TP, TN, FP, FN))
     # calc_metrics(TP, TN, FP, FN)
 
