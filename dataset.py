@@ -136,7 +136,10 @@ class RSDataset(Dataset):
                 self.num_classes = 6
             else:
                 self.num_classes = 9
-        self.L = len(self.ts) + 1                                               # Thresholds + original PC image. 
+        if self.tree is None:
+            self.L = len(self.ts) + 1                                               # Thresholds + original PC image. 
+        else:
+            self.L = 2 * len(self.ts) + 1                                           # Minmax has 2 * ts + 1
         
         if self.split == 'original':
             if self.tree is None:
