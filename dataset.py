@@ -19,7 +19,7 @@ import constants as C
 class RSDataset(Dataset):
     r""" Pavia Dataset """
     
-    def __init__(self, name, mode, split, patch_size=9, transform=None):
+    def __init__(self, name, mode, split, patch_size=9, transform=None, tree=None):
         """
         Args:
             name (String): Loads Reykjavik or Pavia dataset. Can be 'reykjavik' or 'pavia'. 
@@ -31,6 +31,9 @@ class RSDataset(Dataset):
         self.name = name.lower()
         self.mode = mode.lower()
         self.split = split.lower()
+        self.tree = tree
+        if self.tree is not None:
+            self.tree = self.tree.lower()
         self.patch_size = patch_size
         self.pad = int(self.patch_size / 2)
         self.ps = []
@@ -136,9 +139,15 @@ class RSDataset(Dataset):
         self.L = len(self.ts) + 1                                               # Thresholds + original PC image. 
         
         if self.split == 'original':
-            self.ap_dir = osp.join(self.img_dir, 'APs')
+            if self.tree is None:
+                self.ap_dir = osp.join(self.img_dir, 'APs')
+            else:
+                self.ap_dir = osp.join(self.img_dir, 'APs_minmax')
         else: 
-            self.ap_dir = osp.join(self.img_dir, 'split_APs')
+            if self.tree is None:
+                self.ap_dir = osp.join(self.img_dir, 'split_APs')
+            else:
+                self.ap_dir = osp.join(self.img_dir, 'split_APs_minmax')
             self.ann_path = osp.join(self.img_dir, self.mode + "_" + self.split + ".png" )
             
     """
@@ -156,8 +165,12 @@ class RSDataset(Dataset):
     """
     Returns AP images of the dataset. 
     """
-    def _get_ap_path(self, pc, t):
-        path = osp.join(self.ap_dir, 'a_area=' + str(t) + '_pca=' + str(pc))
+    def _get_ap_path(self, pc, t, j=None):
+        if self.tree is None:
+            path = osp.join(self.ap_dir, 'a_area=' + str(t) + '_pca=' + str(pc))
+        else:
+            j_str = 'o' if j == 1 else 'c'
+            path = osp.join(self.ap_dir, 'm_' + j_str + '_' + 'area=' + str(t) + '_pca=' + str(pc))
         if self.split != 'original':
             path += '_' + self.split + '_' + self.mode
         return path + '.png'
@@ -184,9 +197,15 @@ class RSDataset(Dataset):
             pc = io.imread(self._get_pc_path(i))
             self.pcs.append(np.pad(pc, (self.pad, self.pad), 'reflect'))        # Beware the padded images...
             _imgs = []
-            for t in self.ts:
-                ap = io.imread(self._get_ap_path(i, t))
-                _imgs.append(np.pad(ap, (self.pad, self.pad), 'reflect'))
+            if self.tree is None:
+                for t in self.ts:
+                    ap = io.imread(self._get_ap_path(i, t))
+                    _imgs.append(np.pad(ap, (self.pad, self.pad), 'reflect'))
+            else:
+                for t in self.ts:
+                    for j in range(2):
+                        ap = io.imread(self._get_ap_path(i, t, j))
+                        _imgs.append(np.pad(ap, (self.pad, self.pad), 'reflect'))
             self.aps[i-1] = _imgs
         return self.pcs, self.aps
     
@@ -196,7 +215,10 @@ class RSDataset(Dataset):
     def load_patch(self, p):
         tl_x = p[0]                                                             # it's p[0] - pad, but due to padding it becomes p[0].
         tl_y = p[1]                                                             # same as above. 
-        patch = np.zeros((self.c, len(self.ts) + 1, self.patch_size, self.patch_size))
+        if self.tree is None:
+            patch = np.zeros((self.c, len(self.ts) + 1, self.patch_size, self.patch_size))
+        else:
+            patch = np.zeros((self.c, 2 * len(self.ts) + 1, self.patch_size, self.patch_size))
         
         for i in range(self.c):
             for j, ap in enumerate(self.aps[i]):
@@ -210,7 +232,10 @@ class RSDataset(Dataset):
     Returns model name for the dataset.
     """
     def get_model_name(self):
-        return self.name + '_' + self.split + '_'
+        model_name = self.name + '_' + self.split + '_'
+        if self.tree is not None:
+            model_name += self.tree + '_'
+        return model_name
 
 # reykTr = RSDataset(name='reykjavik', mode='train', split='original')
 # pavHorTest = RSDataset(name='pavia', mode='test', split='horizontal')
