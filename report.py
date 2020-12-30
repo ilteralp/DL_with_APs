@@ -43,7 +43,7 @@ class Report:
         self.sheet.write(rid, 1, 'alpha' if dataset.tree == None and dataset.name != 'pavia_full' else dataset.tree)
         self.sheet.write(rid, 2, dataset.split)
         self.sheet.write(rid, 3, dataset.num_classes)
-        self.sheet.write(rid, 4, dataset[0][0].shape)
+        self.sheet.write(rid, 4, str(dataset[0][0].shape))
         self.sheet.write(rid, 5, model_name)
         self.sheet.write(rid, 6, scores['kappa'])
         self.sheet.write(rid, 7, scores['f1'])
