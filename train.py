@@ -19,15 +19,12 @@ import constants as C
 """
 Usage:
 python train.py --name reykjavik \
-                --mode train \
                 --split horizontal
 """
 
 # parser = argparse.ArgumentParser(description='Train a APNet model')            # Parse command-line arguments
 # parser.add_argument('--name', required=True)
 # parser.add_argument('--split', required=True)
-# parser.add_argument('--patch_size', type=int)
-# parser.add_argument('--checkpoint')
 # args = parser.parse_args()
 
 train_transforms = {                                                            # Transformations to be applied on the train set to augment data. 
@@ -63,7 +60,7 @@ def train(model, criterion, optimizer, model_name):                             
             best_loss = batch_loss
             torch.save(model.state_dict(), osp.join(C.MODEL_DIR, model_name + 'best.pth'))
                 
-        print("Epoch #{}\tLoss: {:.4f}\t Time: {:2f} seconds".format(epoch, batch_loss, delta))
+        print("Epoch #{}\tLoss: {:.4f}\t Time: {:.2f} seconds".format(epoch, batch_loss, delta))
     torch.save(model.state_dict(), osp.join(C.MODEL_DIR, model_name + 'last_epoch.pth'))
         
 
@@ -74,12 +71,12 @@ if __name__ == "__main__":
     params = {'batch_size': 50,                                                 # Training parameters
               'shuffle': True, 
               'num_workers': 4}
-    max_epochs = 2
+    max_epochs = 100
     
-    train_set = RSDataset(name='reykjavik', mode='train', split='original')
+    train_set = RSDataset(name='pavia_full', mode='train', split='original')
     train_dataloader = DataLoader(train_set, **params)
     
-    model = APNet(in_channels=train_set.c, num_classes=train_set.num_classes,L=train_set.L).to(device)
+    model = APNet(in_channels=train_set.c, num_classes=train_set.num_classes, L=train_set.L).to(device)
     criterion = torch.nn.CrossEntropyLoss().to(device)
     optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
     train(model, criterion, optimizer, train_set.get_model_name())
