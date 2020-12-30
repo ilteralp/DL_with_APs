@@ -37,7 +37,7 @@ train_transforms = {                                                            
     'rot135': transforms.Compose([transforms.RandomRotation(degrees=[135, 135])])
 }
 
-def train(model, criterion, optimizer, model_name):                             # Saves best model and last epoch model. 
+def train(model, criterion, optimizer, model_name, train_loader, max_epochs, device): # Saves best model and last epoch model. 
     is_better = True
     best_loss = float('inf')
     
@@ -45,7 +45,7 @@ def train(model, criterion, optimizer, model_name):                             
         batch_loss = 0
         t_start = time.time()
         
-        for batch_samples, batch_labels in train_dataloader:
+        for batch_samples, batch_labels in train_loader:
             batch_samples, batch_labels = batch_samples.to(device), batch_labels.to(device)
             optimizer.zero_grad()                                               # Set grads to zero
             output = model(batch_samples)                                       # Feed input to model
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     max_epochs = 100
     
     train_set = RSDataset(name='pavia_full', mode='train', split='original')
-    train_dataloader = DataLoader(train_set, **params)
+    train_loader = DataLoader(train_set, **params)
     
     model = APNet(*(train_set[0][0].shape), num_classes=train_set.num_classes).to(device)
     criterion = torch.nn.CrossEntropyLoss().to(device)
