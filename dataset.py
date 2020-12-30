@@ -22,12 +22,13 @@ class RSDataset(Dataset):
     def __init__(self, name, mode, split, patch_size=9, transform=None, tree=None):
         """
         Args:
-            name (String): Loads Reykjavik or Pavia dataset. Can be 'reykjavik' or 'pavia'. 
+            name (String): Loads Reykjavik or Pavia dataset. Can be 'reykjavik', 'pavia' or 'pavia_full'. 
             mode (String): Loads train or test set. Can be 'train' or 'test'. 
-            split (Integer): Split type. Can 'original', 'horizontal' or 'vertical'.
+            split (Integer): Split type. Can be 'original', 'horizontal' or 'vertical'.
             patch_size (Integer, optional): Patch size, must be odd number. 
             transform (Callable, optional): Optional transform to be applied on a sample. 
         """
+        self._param_check(name, tree)
         self.name = name.lower()
         self.mode = mode.lower()
         self.split = split.lower()
@@ -40,10 +41,10 @@ class RSDataset(Dataset):
         self.labels = []
         self.transform = transform
         self._set_paths()
-        self._load_points()
-        self.load_imgs()
-        self._remove_underrep_class_samples()
-        self._update_labels()
+        self._load_points()                                                     # Loads annotated points of given set. 
+        self.load_imgs()                                                        # Loads AP and PC images (if possible). 
+        self._remove_underrep_class_samples()                                   # In case of split images, removes samples of classes with insufficient number. 
+        self._update_labels()                                                   # Makes labels continuos in [0, num_class] range and makes them start from 0.
     
     def __len__(self):
         return len(self.ps)
@@ -56,7 +57,14 @@ class RSDataset(Dataset):
         if self.transform:
             patch = self.transform(patch)
             
-        return patch, torch.tensor(self.labels[index]).type(torch.LongTensor)
+        return patch, torch.tensor(self.labels[index]).type(torch.LongTensor), p
+    
+    """
+    Checks params.
+    """
+    def _param_check(self, name, tree):
+        if name == 'pavia_full' and tree:
+            raise Exception('pavia_full dataset does not work with tree param.')
 
     """
     Removes samples of a class in case of they are in insufficient number. 
@@ -68,7 +76,7 @@ class RSDataset(Dataset):
             if self.name == 'reykjavik':
                 if self.split == 'vertical':
                     inds = [i for i, label in enumerate(self.labels) if label in C.REY_VER_REMOVE_LABELS]
-            elif self.name == 'pavia':
+            elif self.name == 'pavia' or self.name == 'pavia_full':
                 if self.split == 'horizontal':
                     inds = [i for i, label in enumerate(self.labels) if label in C.PAV_HOR_REMOVE_LABELS]
                 elif self.split == 'vertical':
@@ -89,7 +97,7 @@ class RSDataset(Dataset):
                 if self.split == 'vertical':                                    # 6 -> 5
                     for i, label in enumerate(self.labels):
                         if label == 6:                      self.labels[i] = 5
-            elif self.name == 'pavia':
+            elif self.name == 'pavia' or self.name == 'pavia_full':
                 if self.split == 'horizontal':                                  # 4 -> 3, 6 -> 4, 8 -> 5, 9 -> 6
                     for i, label in enumerate(self.labels):
                         if label == 4:                      self.labels[i] = 3
@@ -105,7 +113,7 @@ class RSDataset(Dataset):
                         elif label == 9:                    self.labels[i] = 6
         
         # Finally, start labels from 0. 
-        if isinstance(self.labels, list):
+        if isinstance(self.labels, list):                                       # Labels are already converted to nd.array in case of split.
             self.labels = np.array(self.labels)
         self.labels = self.labels - 1
         
@@ -124,10 +132,17 @@ class RSDataset(Dataset):
             else:
                 self.num_classes = 6
             
-        elif self.name == 'pavia':
-            self.c = 4
-            self.ts = C.PAV_TS
-            self.img_dir = C.PAVIA_DIR_PATH
+        else:
+            if self.name == 'pavia':
+                self.c = 4
+                self.ts = C.PAV_TS
+                self.img_dir = C.PAVIA_DIR_PATH
+                
+            elif self.name == 'pavia_full':
+                self.c = 103
+                self.ts = None                                                  # No thresholds since AP is not applied. 
+                self.img_dir = C.PAVIA_FULL_DIR_PATH
+            
             if self.mode == 'train':
                 self.ann_path = osp.join(self.img_dir, 'Train_University.bmp')
             elif self.mode == 'test':
@@ -136,21 +151,27 @@ class RSDataset(Dataset):
                 self.num_classes = 6
             else:
                 self.num_classes = 9
-        if self.tree is None:
-            self.L = len(self.ts) + 1                                               # Thresholds + original PC image. 
-        else:
-            self.L = 2 * len(self.ts) + 1                                           # Minmax has 2 * ts + 1
         
-        if self.split == 'original':
+            
+        if self.name == 'pavia_full':                                           # Pavia with spectral signature
+            self.L = 1
+        else:                                                                   # Pavia and Reykjavik
             if self.tree is None:
-                self.ap_dir = osp.join(self.img_dir, 'APs')
+                self.L = len(self.ts) + 1                                       # Thresholds + original PC image. 
             else:
-                self.ap_dir = osp.join(self.img_dir, 'APs_minmax')
-        else: 
-            if self.tree is None:
-                self.ap_dir = osp.join(self.img_dir, 'split_APs')
-            else:
-                self.ap_dir = osp.join(self.img_dir, 'split_APs_minmax')
+                self.L = 2 * len(self.ts) + 1                                   # Minmax has 2 * ts + 1
+        
+            if self.split == 'original':
+                if self.tree is None:
+                    self.ap_dir = osp.join(self.img_dir, 'APs')
+                else:
+                    self.ap_dir = osp.join(self.img_dir, 'APs_minmax')
+            else: 
+                if self.tree is None:
+                    self.ap_dir = osp.join(self.img_dir, 'split_APs')
+                else:
+                    self.ap_dir = osp.join(self.img_dir, 'split_APs_minmax')
+        if self.split != 'original':
             self.ann_path = osp.join(self.img_dir, self.mode + "_" + self.split + ".png" )
             
     """
@@ -186,6 +207,8 @@ class RSDataset(Dataset):
             path = osp.join(self.img_dir, 'paviaPCA' + str(pc))
         elif self.name == 'reykjavik':
             path = osp.join(self.img_dir, 'pan')
+        elif self.name == 'pavia_full':
+            path = osp.join(self.img_dir, 'pavia' + str(pc))
         if self.split != 'original':
             path += '_' + self.split + '_' + self.mode
         return path + '.png'
@@ -199,36 +222,43 @@ class RSDataset(Dataset):
         for i in range(1, self.c + 1):
             pc = io.imread(self._get_pc_path(i))
             self.pcs.append(np.pad(pc, (self.pad, self.pad), 'reflect'))        # Beware the padded images...
-            _imgs = []
-            if self.tree is None:
-                for t in self.ts:
-                    ap = io.imread(self._get_ap_path(i, t))
-                    _imgs.append(np.pad(ap, (self.pad, self.pad), 'reflect'))
-            else:
-                for t in self.ts:
-                    for j in range(2):
-                        ap = io.imread(self._get_ap_path(i, t, j))
+            
+            if self.name != 'pavia_full':
+                _imgs = []
+                if self.tree is None:
+                    for t in self.ts:
+                        ap = io.imread(self._get_ap_path(i, t))
                         _imgs.append(np.pad(ap, (self.pad, self.pad), 'reflect'))
-            self.aps[i-1] = _imgs
+                else:
+                    for t in self.ts:
+                        for j in range(2):
+                            ap = io.imread(self._get_ap_path(i, t, j))
+                            _imgs.append(np.pad(ap, (self.pad, self.pad), 'reflect'))
+                self.aps[i-1] = _imgs
         return self.pcs, self.aps
     
     """
-    Takes a point and returns its patch.
+    Crops point p's patch from the 2d image.
+    """
+    def _crop_2d_patch(self, p, img):
+        tl_x, tl_y = p                                                          # it's p - pad, but due to padding it becomes p.
+        patch = img[tl_x : tl_x + self.patch_size, tl_y : tl_y + self.patch_size]
+        return patch - patch.mean()
+    
+    """
+    Takes a point and returns its multi-dim patch.
     """
     def load_patch(self, p):
-        tl_x = p[0]                                                             # it's p[0] - pad, but due to padding it becomes p[0].
-        tl_y = p[1]                                                             # same as above. 
-        if self.tree is None:
-            patch = np.zeros((self.c, len(self.ts) + 1, self.patch_size, self.patch_size))
+        patch = np.zeros((self.c, self.L, self.patch_size, self.patch_size))
+
+        if self.name == 'pavia_full':                                           # Only has spectral images, no APs. 
+            for i, pc in enumerate(self.pcs):
+                patch[i][0] = self._crop_2d_patch(p, pc)                        # 2nd dim is always 0 since it's AP dimension and 'full pavia' has no APs.
         else:
-            patch = np.zeros((self.c, 2 * len(self.ts) + 1, self.patch_size, self.patch_size))
-        
-        for i in range(self.c):
-            for j, ap in enumerate(self.aps[i]):
-                patch[i][j] = ap[tl_x : tl_x + self.patch_size, tl_y : tl_y + self.patch_size]
-                patch[i][j] = patch[i][j] - patch[i][j].mean()
-            patch[i][len(self.ts)] = self.pcs[i][tl_x : tl_x + self.patch_size, tl_y : tl_y + self.patch_size]
-            patch[i][len(self.ts)] = patch[i][len(self.ts)] - patch[i][len(self.ts)].mean()
+            for i in range(self.c):
+                for j, ap in enumerate(self.aps[i]):
+                    patch[i][j] = self._crop_2d_img(p, ap)
+                patch[i][len(self.ts)] = self._crop_2d_patch(p, self.pcs[i])    # PC image is after the AP images. 
         return patch
     
     """
