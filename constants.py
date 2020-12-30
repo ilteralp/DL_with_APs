@@ -13,12 +13,14 @@ ROG_ENV = not LOCAL_ENV
 if LOCAL_ENV:
     REYKJAVIK_DIR_PATH = r'/home/melike/rs/reykjavik'
     PAVIA_DIR_PATH = r'/home/melike/rs/pavia'
+    PAVIA_FULL_DIR_PATH = r'/home/melike/rs/pavia uni'
     MODEL_DIR = r'/home/melike/repos/DL_with_APs/models'
 
 """ ROG """
 if ROG_ENV:
     REYKJAVIK_DIR_PATH = r'/home/rog/rs/reykjavik'
     PAVIA_DIR_PATH = r'/home/rog/rs/pavia'
+    PAVIA_FULL_DIR_PATH = r'/home/rog/rs/pavia uni'
     MODEL_DIR = r'/home/rog/repos/DL_with_APs/models'
 
 REY_TS = [25, 100, 500, 1000, 5000, 10000, 20000, 50000, 100000, 150000]
