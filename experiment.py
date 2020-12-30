@@ -45,7 +45,8 @@ def create_splits(in_dir, out_dir, base_img_name, c):
         
 
 if __name__ == "__main__":
-
+    
+    TRAIN = False
     datasets = ['pavia', 'reykjavik', 'pavia_full']
     splits = ['original', 'vertical', 'horizontal']
     trees = {'pavia': [None, 'minmax'], 'reykjavik': [None, 'minmax'], 'pavia_full': [None]}
@@ -65,17 +66,18 @@ if __name__ == "__main__":
     report = Report()
     
     """ ============================ Train ============================ """
-    for name in datasets:
-        for split in splits:
-            for tree in trees[name]:
-                train_set = RSDataset(name=name, mode='train', split=split, tree=tree)
-                train_set.print()
-                train_loader = DataLoader(train_set, **train_params)
-                model = APNet(*(train_set[0][0].shape), num_classes=train_set.num_classes).to(device)
-                criterion = torch.nn.CrossEntropyLoss().to(device)
-                optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
-                train(model=model, criterion=criterion, optimizer=optimizer, model_name=train_set.get_model_name(),\
-                      train_loader=train_loader, max_epochs=max_epochs, device=device)
+    if TRAIN:
+        for name in datasets:
+            for split in splits:
+                for tree in trees[name]:
+                    train_set = RSDataset(name=name, mode='train', split=split, tree=tree)
+                    train_set.print()
+                    train_loader = DataLoader(train_set, **train_params)
+                    model = APNet(*(train_set[0][0].shape), num_classes=train_set.num_classes).to(device)
+                    criterion = torch.nn.CrossEntropyLoss().to(device)
+                    optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+                    train(model=model, criterion=criterion, optimizer=optimizer, model_name=train_set.get_model_name(),\
+                          train_loader=train_loader, max_epochs=max_epochs, device=device)
                     
     """ ============================ Test ============================= """
     for name in datasets:
