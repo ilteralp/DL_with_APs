@@ -57,7 +57,7 @@ class RSDataset(Dataset):
         if self.transform:
             patch = self.transform(patch)
             
-        return patch, torch.tensor(self.labels[index]).type(torch.LongTensor), p
+        return patch, torch.tensor(self.labels[index]).type(torch.LongTensor)
     
     """
     Checks params.
