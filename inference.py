@@ -126,6 +126,6 @@ if __name__ == "__main__":
     test_loader = DataLoader(test_set, **params)
     
     model_path = osp.join(C.MODEL_DIR, test_set.get_model_name() + model_name + '.pth')
-    model = APNet(in_channels=test_set.c, num_classes=test_set.num_classes, L=test_set.L).to(device)
+    model = APNet(*(test_set[0][0].shape), num_classes=test_set.num_classes).to(device)
     model.load_state_dict(torch.load(model_path))
     test()
