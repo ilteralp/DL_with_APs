@@ -15,7 +15,9 @@ from model import APNet
 from dataset import RSDataset
 from train import train
 from inference import test
+from report import Report
 import constants as C
+
 
 """
 Takes an input image folder, base image name, output folder and channels. 
@@ -41,10 +43,10 @@ def create_splits(in_dir, out_dir, base_img_name, c):
         io.imsave(v_tr_path, ver_tr)
         io.imsave(v_test_path, ver_test)
         
+
 if __name__ == "__main__":
 
     datasets = ['pavia', 'reykjavik', 'pavia_full']
-    modes = ['train', 'inference']                                                  # test is inference. 
     splits = ['original', 'vertical', 'horizontal']
     trees = {'pavia': [None, 'minmax'], 'reykjavik': [None, 'minmax'], 'pavia_full': [None]}
     model_names = ['best', 'last_epoch']
@@ -60,6 +62,7 @@ if __name__ == "__main__":
     test_params = {'num_workers': 4,                                                # Test parameters    
                   'batch_size': 10,
                   'shuffle': False}
+    report = Report()
     
     """ ============================ Train ============================ """
     for name in datasets:
@@ -87,5 +90,6 @@ if __name__ == "__main__":
                     model.load_state_dict(torch.load(model_path))
                     scores = test(model=model, num_classes=test_set.num_classes, model_path=model_path,\
                                   test_loader=test_loader, device=device)
-                    print(scores)
+                    report.add(test_set, scores, model_name)
+    report.save()
 
