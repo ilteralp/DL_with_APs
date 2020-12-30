@@ -250,14 +250,13 @@ class RSDataset(Dataset):
     """
     def load_patch(self, p):
         patch = np.zeros((self.c, self.L, self.patch_size, self.patch_size))
-
         if self.name == 'pavia_full':                                           # Only has spectral images, no APs. 
             for i, pc in enumerate(self.pcs):
                 patch[i][0] = self._crop_2d_patch(p, pc)                        # 2nd dim is always 0 since it's AP dimension and 'full pavia' has no APs.
         else:
             for i in range(self.c):
                 for j, ap in enumerate(self.aps[i]):
-                    patch[i][j] = self._crop_2d_img(p, ap)
+                    patch[i][j] = self._crop_2d_patch(p, ap)
                 patch[i][len(self.ts)] = self._crop_2d_patch(p, self.pcs[i])    # PC image is after the AP images. 
         return patch
     
