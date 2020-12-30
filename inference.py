@@ -77,6 +77,11 @@ def get_confusion_matrix(conf_matrix):
 #     print('f1: {:.4f}'.format(f1.item()))
 
 """
+"""
+def to_str(score):
+    return '{:.2f}'.format(score * 100)
+
+"""
 Calculates scores using scikit metrics
 """
 def calc_scores(labels, preds):
@@ -90,10 +95,10 @@ def calc_scores(labels, preds):
     print('precision: {:.4f}'.format(precision))
     print('recall: {:.4f}'.format(recall))
     print('f1: {:.4f}'.format(f1))
-
+    return {'kappa': to_str(kappa), 'precision': to_str(precision), 'recall': to_str(recall), 'f1': to_str(f1)}
     
-def test():
-    conf_matrix = torch.zeros(test_set.num_classes, test_set.num_classes, dtype=torch.long)
+def test(model, num_classes, model_path, test_loader, device):
+    conf_matrix = torch.zeros(num_classes, num_classes, dtype=torch.long)
     all_preds = torch.tensor([], dtype=torch.long).to(device)
     all_labels = torch.tensor([], dtype=torch.long).to(device)
     for batch_samples, batch_labels in test_loader:
@@ -109,9 +114,8 @@ def test():
         all_labels = all_labels.cpu()
     
     print('\nModel:', model_path)
-    calc_scores(all_labels, all_preds)
-    # print('Final, TP {}, TN {}, FP {}, FN {}'.format(TP, TN, FP, FN))
-    # calc_metrics(TP, TN, FP, FN)
+    scores = calc_scores(all_labels, all_preds)
+    return scores
 
 if __name__ == "__main__":
     model_name = 'best'
