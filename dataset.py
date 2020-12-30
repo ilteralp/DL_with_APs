@@ -59,6 +59,9 @@ class RSDataset(Dataset):
             
         return patch, torch.tensor(self.labels[index]).type(torch.LongTensor)
     
+    def print(self):
+        print('name: {}, mode: {}, split: {}, tree: {}, len: {}'.format(self.name, self.mode, self.split, self.tree, len(self)))
+    
     """
     Checks params.
     """
