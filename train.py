@@ -76,7 +76,7 @@ if __name__ == "__main__":
     train_set = RSDataset(name='pavia_full', mode='train', split='original')
     train_dataloader = DataLoader(train_set, **params)
     
-    model = APNet(in_channels=train_set.c, num_classes=train_set.num_classes, L=train_set.L).to(device)
+    model = APNet(*(train_set[0][0].shape), num_classes=train_set.num_classes).to(device)
     criterion = torch.nn.CrossEntropyLoss().to(device)
     optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
     train(model, criterion, optimizer, train_set.get_model_name())
