@@ -70,7 +70,7 @@ if __name__ == "__main__":
         for name in datasets:
             for split in splits:
                 for tree in trees[name]:
-                    train_set = RSDataset(name=name, mode='train', split=split, tree=tree)
+                    train_set = RSDataset(name=name, mode='train', split=split, tree=tree, patch_size=1)
                     train_set.print()
                     train_loader = DataLoader(train_set, **train_params)
                     model = APNet(*(train_set[0][0].shape), num_classes=train_set.num_classes).to(device)
@@ -84,7 +84,7 @@ if __name__ == "__main__":
         for split in splits:
             for tree in trees[name]:
                 for model_name in model_names:
-                    test_set = RSDataset(name=name, mode='test', split=split, tree=tree)
+                    test_set = RSDataset(name=name, mode='test', split=split, tree=tree, patch_size=1)
                     test_set.print()
                     test_loader = DataLoader(test_set, **test_params)
                     model = APNet(*(test_set[0][0].shape), num_classes=test_set.num_classes).to(device)
