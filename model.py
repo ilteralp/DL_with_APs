@@ -12,9 +12,18 @@ Resources:
 import torch
 import torch.nn as nn
 
-conv1 = {'ks': 5, 'pad': 2, 'st': 1}                                            # Kernel sizes are from the article. Padding and stride are set in order to make output shape same as input shape. 
-conv2 = {'ks': 3, 'pad': 1, 'st': 1}
-conv3 = {'ks': 3, 'pad': 1, 'st': 1}
+# Patch_size is 9x9
+conv1_ps9 = {'kernel_size': (5, 5, 5), 'padding': (2, 2, 2), 'stride': (1, 1, 1)}  # Kernel sizes are from the article. Padding and stride are set in order to make output shape same as input shape. 
+conv2_ps9 = {'kernel_size': (3, 3, 3), 'padding': (1, 1, 1), 'stride': (1, 1, 1)}
+conv3_ps9 = {'kernel_size': (3, 3, 3), 'padding': (1, 1, 1), 'stride': (1, 1, 1)}
+
+# Patch_size is 1x1
+conv1_ps1 = {'kernel_size': (5, 1, 1), 'padding': (2, 0, 0), 'stride': (1, 1, 1)}
+conv2_ps1 = {'kernel_size': (3, 1, 1), 'padding': (1, 0, 0), 'stride': (1, 1, 1)}
+conv3_ps1 = {'kernel_size': (3, 1, 1), 'padding': (1, 0, 0), 'stride': (1, 1, 1)}
+
+ps_layers = {'9': [conv1_ps9, conv2_ps9, conv3_ps9],
+             '1': [conv1_ps1, conv2_ps1, conv3_ps1]}
 
 class APNet(nn.Module):
     r""" 
@@ -32,17 +41,17 @@ class APNet(nn.Module):
             num_classes (int): Number of classes within the dataset. 
         """
         super(APNet, self).__init__()
+        self._check_params(H, W)
         self.in_channels = in_channels
-        self.last_conv_d = self.calc_last_conv(L)                               # L (number of thresholds of AP) varies, so calculate the last conv layer's depth.
-        self.last_conv_h = self.calc_last_conv(H)
-        self.last_conv_w = self.calc_last_conv(W)
+        self.params = ps_layers[str(H)]
+        self.last_conv_d, self.last_conv_h, self.last_conv_w = self.calc_last_conv(L, H, W)
         self.num_classes = num_classes
         self.features = nn.Sequential(
-            nn.Conv3d(self.in_channels, 48, kernel_size=conv1['ks'], padding=conv1['pad'], stride=conv1['st']),
+            nn.Conv3d(self.in_channels, 48, **self.params[0]),
             nn.ReLU(inplace=True),
-            nn.Conv3d(48, 96, kernel_size=conv2['ks'], padding=conv2['pad'], stride=conv2['st']),
+            nn.Conv3d(48, 96, **self.params[1]),
             nn.ReLU(inplace=True),
-            nn.Conv3d(96, 96, kernel_size=conv3['ks'], padding=conv3['pad'], stride=conv3['st']),
+            nn.Conv3d(96, 96, **self.params[2]),
             nn.ReLU(inplace=True)
         )
         self.classifier = nn.Sequential(
@@ -61,12 +70,21 @@ class APNet(nn.Module):
         x = self.classifier(x)                                                  # No softmax due to using cross entropy loss.
         return x
     
+    def _check_params(self, H, W):
+        if H != W:
+            raise Exception('Height and weight of the patch should be equal.')
+        if H != 1 and H != 9:
+            raise Exception('Convolution params are set for patch_size={1, 9}.')
+    
     """
     Takes an input shape, returns output shape of it after convolutions. See 
     https://pytorch.org/docs/stable/generated/torch.nn.Conv3d.html
     """
-    def calc_last_conv(self, shape):
-        dil  = 1                                                                # Default value of dilation in PyTorch.
-        for layer in [conv1, conv2, conv3]:
-            shape = int((shape + 2 * layer['pad'] - dil * (layer['ks'] - 1) - 1) / layer['st']) + 1
-        return shape 
+    def calc_last_conv(self, *args):
+        dil = (1, 1, 1)                                                         # Default value of dilation in PyTorch.
+        args = list(args)
+        for layer in self.params:
+            for i, shape in enumerate(args):
+                args[i] = int((shape + 2 * layer['padding'][i] - dil[i] *\
+                              (layer['kernel_size'][i] - 1) - 1) / layer['stride'][i]) + 1     
+        return args
