@@ -46,10 +46,13 @@ def create_splits(in_dir, out_dir, base_img_name, c):
 
 if __name__ == "__main__":
     
-    TRAIN = False
-    datasets = ['pavia', 'reykjavik', 'pavia_full']
-    splits = ['original', 'vertical', 'horizontal']
-    trees = {'pavia': [None, 'minmax'], 'reykjavik': [None, 'minmax'], 'pavia_full': [None]}
+    TRAIN = True
+    # datasets = ['pavia', 'reykjavik', 'pavia_full']
+    # splits = ['original', 'vertical', 'horizontal']
+    # trees = {'pavia': [None, 'minmax'], 'reykjavik': [None, 'minmax'], 'pavia_full': [None]}
+    datasets = ['pavia']
+    splits = ['original']
+    trees = {'pavia': [None]}
     model_names = ['best', 'last_epoch']
     
     use_cuda = torch.cuda.is_available()                                            # Use GPU if available
@@ -65,12 +68,14 @@ if __name__ == "__main__":
                   'shuffle': False}
     report = Report()
     
+    
+    patch_size = 5
     """ ============================ Train ============================ """
     if TRAIN:
         for name in datasets:
             for split in splits:
                 for tree in trees[name]:
-                    train_set = RSDataset(name=name, mode='train', split=split, tree=tree, patch_size=1)
+                    train_set = RSDataset(name=name, mode='train', split=split, tree=tree, patch_size=patch_size)
                     train_set.print()
                     train_loader = DataLoader(train_set, **train_params)
                     model = APNet(*(train_set[0][0].shape), num_classes=train_set.num_classes).to(device)
@@ -86,7 +91,7 @@ if __name__ == "__main__":
         for split in splits:
             for tree in trees[name]:
                 for model_name in model_names:
-                    test_set = RSDataset(name=name, mode='test', split=split, tree=tree, patch_size=1)
+                    test_set = RSDataset(name=name, mode='test', split=split, tree=tree, patch_size=patch_size)
                     test_set.print()
                     test_loader = DataLoader(test_set, **test_params)
                     model = APNet(*(test_set[0][0].shape), num_classes=test_set.num_classes).to(device)
