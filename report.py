@@ -26,13 +26,14 @@ class Report:
         self.sheet.write(0, 0, 'Dataset', self.header)
         self.sheet.write(0, 1, 'Tree', self.header)
         self.sheet.write(0, 2, 'Split', self.header)
-        self.sheet.write(0, 3, 'Number of Classes', self.header)
-        self.sheet.write(0, 4, 'Input Shape', self.header)
-        self.sheet.write(0, 5, 'Model Name', self.header)
-        self.sheet.write(0, 6, 'Kappa', self.header)
-        self.sheet.write(0, 7, 'F1', self.header)
-        self.sheet.write(0, 8, 'Recall', self.header)
-        self.sheet.write(0, 9, 'Precision', self.header)
+        self.sheet.write(0, 3, 'Patch Size', self.header)
+        self.sheet.write(0, 4, 'Number of Classes', self.header)
+        self.sheet.write(0, 5, 'Input Shape', self.header)
+        self.sheet.write(0, 6, 'Model Name', self.header)
+        self.sheet.write(0, 7, 'Kappa', self.header)
+        self.sheet.write(0, 8, 'F1', self.header)
+        self.sheet.write(0, 9, 'Recall', self.header)
+        self.sheet.write(0, 10, 'Precision', self.header)
         
     """
     Adds given dataset, its score and model name to the report. 
@@ -42,13 +43,14 @@ class Report:
         self.sheet.write(rid, 0, dataset.name)
         self.sheet.write(rid, 1, 'alpha' if dataset.tree == None and dataset.name != 'pavia_full' else dataset.tree)
         self.sheet.write(rid, 2, dataset.split)
-        self.sheet.write(rid, 3, dataset.num_classes)
-        self.sheet.write(rid, 4, str(dataset[0][0].shape))
-        self.sheet.write(rid, 5, model_name)
-        self.sheet.write(rid, 6, scores['kappa'])
-        self.sheet.write(rid, 7, scores['f1'])
-        self.sheet.write(rid, 8, scores['recall'])
-        self.sheet.write(rid, 9, scores['precision'])
+        self.sheet.write(rid, 3, str(dataset.patch_size) + 'x' + str(dataset.patch_size))
+        self.sheet.write(rid, 4, dataset.num_classes)
+        self.sheet.write(rid, 5, str(dataset[0][0].shape))
+        self.sheet.write(rid, 6, model_name)
+        self.sheet.write(rid, 7, scores['kappa'])
+        self.sheet.write(rid, 8, scores['f1'])
+        self.sheet.write(rid, 9, scores['recall'])
+        self.sheet.write(rid, 10, scores['precision'])
         
     """
     Returns current report's id. 

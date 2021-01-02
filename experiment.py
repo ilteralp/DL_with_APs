@@ -68,7 +68,6 @@ if __name__ == "__main__":
                   'shuffle': False}
     report = Report()
     
-    
     patch_size = 5
     """ ============================ Train ============================ """
     if TRAIN:
