@@ -81,8 +81,8 @@ class APNet(nn.Module):
     def _check_params(self, H, W):
         if H != W:
             raise Exception('Height and weight of the patch should be equal.')
-        if H != 1 and H != 9:
-            raise Exception('Convolution params are set for patch_size={1, 9}.')
+        if H not in [1, 3, 5, 7, 9]:
+            raise Exception('Convolution params are set for patch_size={1, 3, 5, 7, 9}.')
     
     """
     Takes an input shape, returns output shape of it after convolutions. See 
