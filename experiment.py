@@ -46,10 +46,13 @@ def create_splits(in_dir, out_dir, base_img_name, c):
 
 if __name__ == "__main__":
     
-    TRAIN = False
-    datasets = ['pavia', 'reykjavik', 'pavia_full']
-    splits = ['original', 'vertical', 'horizontal']
-    trees = {'pavia': [None, 'minmax'], 'reykjavik': [None, 'minmax'], 'pavia_full': [None]}
+    TRAIN = True
+    # datasets = ['pavia', 'reykjavik', 'pavia_full']
+    # splits = ['original', 'vertical', 'horizontal']
+    # trees = {'pavia': [None, 'minmax'], 'reykjavik': [None, 'minmax'], 'pavia_full': [None]}
+    datasets = ['pavia']
+    splits = ['original']
+    trees = {'pavia': [None]}
     model_names = ['best', 'last_epoch']
     
     use_cuda = torch.cuda.is_available()                                            # Use GPU if available
@@ -65,7 +68,7 @@ if __name__ == "__main__":
                   'shuffle': False}
     report = Report()
     
-    patch_size = 1
+    patch_size = 5
     """ ============================ Train ============================ """
     if TRAIN:
         for name in datasets:
