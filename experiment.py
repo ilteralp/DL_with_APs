@@ -76,8 +76,10 @@ if __name__ == "__main__":
                     model = APNet(*(train_set[0][0].shape), num_classes=train_set.num_classes).to(device)
                     criterion = torch.nn.CrossEntropyLoss().to(device)
                     optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+                    loss_file = open(osp.join(C.MODEL_DIR, train_set.get_model_name() + 'lost.txt'), 'w')
                     train(model=model, criterion=criterion, optimizer=optimizer, model_name=train_set.get_model_name(),\
-                          train_loader=train_loader, max_epochs=max_epochs, device=device)
+                          train_loader=train_loader, max_epochs=max_epochs, device=device, loss_file=loss_file)
+                    loss_file.close()
                     
     """ ============================ Test ============================= """
     for name in datasets:
