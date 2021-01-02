@@ -267,7 +267,7 @@ class RSDataset(Dataset):
     Returns model name for the dataset.
     """
     def get_model_name(self):
-        model_name = self.name + '_' + self.split + '_'
+        model_name = self.name + '_' + self.split + '_ps=' +  str(self.patch_size) + '_'
         if self.tree is not None:
             model_name += self.tree + '_'
         return model_name
