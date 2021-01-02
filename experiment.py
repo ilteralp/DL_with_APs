@@ -47,13 +47,11 @@ def create_splits(in_dir, out_dir, base_img_name, c):
 if __name__ == "__main__":
     
     TRAIN = True
-    # datasets = ['pavia', 'reykjavik', 'pavia_full']
-    # splits = ['original', 'vertical', 'horizontal']
-    # trees = {'pavia': [None, 'minmax'], 'reykjavik': [None, 'minmax'], 'pavia_full': [None]}
-    datasets = ['pavia']
-    splits = ['original']
-    trees = {'pavia': [None]}
+    datasets = ['pavia', 'reykjavik', 'pavia_full']
+    splits = ['original', 'vertical', 'horizontal']
+    trees = {'pavia': [None, 'minmax'], 'reykjavik': [None, 'minmax'], 'pavia_full': [None]}
     model_names = ['best', 'last_epoch']
+    patch_sizes = [1, 3, 5, 7, 9]
     
     use_cuda = torch.cuda.is_available()                                            # Use GPU if available
     device = torch.device("cuda:0" if use_cuda else "cpu")
@@ -67,37 +65,37 @@ if __name__ == "__main__":
                   'batch_size': 10,
                   'shuffle': False}
     report = Report()
-    
-    patch_size = 5
     """ ============================ Train ============================ """
     if TRAIN:
         for name in datasets:
             for split in splits:
                 for tree in trees[name]:
-                    train_set = RSDataset(name=name, mode='train', split=split, tree=tree, patch_size=patch_size)
-                    train_set.print()
-                    train_loader = DataLoader(train_set, **train_params)
-                    model = APNet(*(train_set[0][0].shape), num_classes=train_set.num_classes).to(device)
-                    criterion = torch.nn.CrossEntropyLoss().to(device)
-                    optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
-                    loss_file = open(osp.join(C.MODEL_DIR, train_set.get_model_name() + 'lost.txt'), 'w')
-                    train(model=model, criterion=criterion, optimizer=optimizer, model_name=train_set.get_model_name(),\
-                          train_loader=train_loader, max_epochs=max_epochs, device=device, loss_file=loss_file)
-                    loss_file.close()
+                    for patch_size in patch_sizes:
+                        train_set = RSDataset(name=name, mode='train', split=split, tree=tree, patch_size=patch_size)
+                        train_set.print()
+                        train_loader = DataLoader(train_set, **train_params)
+                        model = APNet(*(train_set[0][0].shape), num_classes=train_set.num_classes).to(device)
+                        criterion = torch.nn.CrossEntropyLoss().to(device)
+                        optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+                        loss_file = open(osp.join(C.MODEL_DIR, train_set.get_model_name() + 'lost.txt'), 'w')
+                        train(model=model, criterion=criterion, optimizer=optimizer, model_name=train_set.get_model_name(),\
+                              train_loader=train_loader, max_epochs=max_epochs, device=device, loss_file=loss_file)
+                        loss_file.close()
                     
     """ ============================ Test ============================= """
     for name in datasets:
         for split in splits:
             for tree in trees[name]:
                 for model_name in model_names:
-                    test_set = RSDataset(name=name, mode='test', split=split, tree=tree, patch_size=patch_size)
-                    test_set.print()
-                    test_loader = DataLoader(test_set, **test_params)
-                    model = APNet(*(test_set[0][0].shape), num_classes=test_set.num_classes).to(device)
-                    model_path = osp.join(C.MODEL_DIR, test_set.get_model_name() + model_name + '.pth')
-                    model.load_state_dict(torch.load(model_path))
-                    scores = test(model=model, num_classes=test_set.num_classes, model_path=model_path,\
-                                  test_loader=test_loader, device=device)
-                    report.add(test_set, scores, model_name)
+                    for patch_size in patch_sizes:
+                        test_set = RSDataset(name=name, mode='test', split=split, tree=tree, patch_size=patch_size)
+                        test_set.print()
+                        test_loader = DataLoader(test_set, **test_params)
+                        model = APNet(*(test_set[0][0].shape), num_classes=test_set.num_classes).to(device)
+                        model_path = osp.join(C.MODEL_DIR, test_set.get_model_name() + model_name + '.pth')
+                        model.load_state_dict(torch.load(model_path))
+                        scores = test(model=model, num_classes=test_set.num_classes, model_path=model_path,\
+                                      test_loader=test_loader, device=device)
+                        report.add(test_set, scores, model_name)
     report.save()
 
