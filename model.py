@@ -13,9 +13,14 @@ import torch
 import torch.nn as nn
 
 # Patch_size is 9x9
-conv1_ps9 = {'kernel_size': (5, 5, 5), 'padding': (2, 2, 2), 'stride': (1, 1, 1)}  # Kernel sizes are from the article. Padding and stride are set in order to make output shape same as input shape. 
-conv2_ps9 = {'kernel_size': (3, 3, 3), 'padding': (1, 1, 1), 'stride': (1, 1, 1)}
+conv1_ps9 = {'kernel_size': (5, 5, 5), 'padding': (2, 2, 2), 'stride': (1, 1, 1)} # (D, H, W)
+conv2_ps9 = {'kernel_size': (3, 3, 3), 'padding': (1, 1, 1), 'stride': (1, 1, 1)} # Kernel sizes are from the article. Padding and stride are set in order to make output shape same as input shape. 
 conv3_ps9 = {'kernel_size': (3, 3, 3), 'padding': (1, 1, 1), 'stride': (1, 1, 1)}
+
+# Patch_size is 3x3
+conv1_ps3 = {'kernel_size': (5, 3, 3), 'padding': (2, 1, 1), 'stride': (1, 1, 1)}
+conv2_ps3 = {'kernel_size': (3, 3, 3), 'padding': (1, 1, 1), 'stride': (1, 1, 1)}
+conv3_ps3 = {'kernel_size': (3, 3, 3), 'padding': (1, 1, 1), 'stride': (1, 1, 1)}
 
 # Patch_size is 1x1
 conv1_ps1 = {'kernel_size': (5, 1, 1), 'padding': (2, 0, 0), 'stride': (1, 1, 1)}
@@ -23,6 +28,9 @@ conv2_ps1 = {'kernel_size': (3, 1, 1), 'padding': (1, 0, 0), 'stride': (1, 1, 1)
 conv3_ps1 = {'kernel_size': (3, 1, 1), 'padding': (1, 0, 0), 'stride': (1, 1, 1)}
 
 ps_layers = {'9': [conv1_ps9, conv2_ps9, conv3_ps9],
+             '7': [conv1_ps9, conv2_ps9, conv3_ps9], # Same as patch_size=9
+             '5': [conv1_ps9, conv2_ps9, conv3_ps9], # Same as patch_size=9
+             '3': [conv1_ps3, conv2_ps3, conv3_ps3],
              '1': [conv1_ps1, conv2_ps1, conv3_ps1]}
 
 class APNet(nn.Module):
