@@ -61,7 +61,8 @@ def train(model, criterion, optimizer, model_name, train_loader, max_epochs, dev
             torch.save(model.state_dict(), osp.join(C.MODEL_DIR, model_name + 'best.pth'))
             
         msg = "Epoch #{}\tLoss: {:.4f}\t Time: {:.2f} seconds".format(epoch, batch_loss, delta)
-        # print(msg)
+        if epoch % 10 == 0:
+            print(msg)
         loss_file.write(msg + "\n")
     torch.save(model.state_dict(), osp.join(C.MODEL_DIR, model_name + 'last_epoch.pth'))
         
