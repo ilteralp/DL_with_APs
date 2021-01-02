@@ -37,7 +37,7 @@ train_transforms = {                                                            
     'rot135': transforms.Compose([transforms.RandomRotation(degrees=[135, 135])])
 }
 
-def train(model, criterion, optimizer, model_name, train_loader, max_epochs, device): # Saves best model and last epoch model. 
+def train(model, criterion, optimizer, model_name, train_loader, max_epochs, device, loss_file): # Saves best model and last epoch model. 
     is_better = True
     best_loss = float('inf')
     
@@ -59,8 +59,10 @@ def train(model, criterion, optimizer, model_name, train_loader, max_epochs, dev
         if is_better:
             best_loss = batch_loss
             torch.save(model.state_dict(), osp.join(C.MODEL_DIR, model_name + 'best.pth'))
-                
-        print("Epoch #{}\tLoss: {:.4f}\t Time: {:.2f} seconds".format(epoch, batch_loss, delta))
+            
+        msg = "Epoch #{}\tLoss: {:.4f}\t Time: {:.2f} seconds".format(epoch, batch_loss, delta)
+        print(msg)
+        loss_file.write(msg + "\n")
     torch.save(model.state_dict(), osp.join(C.MODEL_DIR, model_name + 'last_epoch.pth'))
         
 
