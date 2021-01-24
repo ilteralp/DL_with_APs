@@ -40,6 +40,7 @@ train_transforms = {                                                            
 def train(model, criterion, optimizer, model_name, train_loader, max_epochs, device, loss_file): # Saves best model and last epoch model. 
     is_better = True
     best_loss = float('inf')
+    model.train()
     
     for epoch in range(max_epochs):
         batch_loss = 0
