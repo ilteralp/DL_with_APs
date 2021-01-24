@@ -52,7 +52,7 @@ def train(model, criterion, optimizer, model_name, train_loader, max_epochs, dev
             loss = criterion(output, batch_labels)                              # Calculate loss
             loss.backward()                                                     # Calculate grads via backprop
             optimizer.step()                                                    # Update weights
-            batch_loss += loss
+            batch_loss += loss.item()
             
         delta = time.time() - t_start
         is_better = batch_loss < best_loss
