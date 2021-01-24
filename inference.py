@@ -101,17 +101,19 @@ def test(model, num_classes, model_path, test_loader, device):
     conf_matrix = torch.zeros(num_classes, num_classes, dtype=torch.long)
     all_preds = torch.tensor([], dtype=torch.long).to(device)
     all_labels = torch.tensor([], dtype=torch.long).to(device)
-    for batch_samples, batch_labels in test_loader:
-        batch_samples, batch_labels = batch_samples.to(device), batch_labels.to(device)
-        output = model(batch_samples)
-        conf_matrix = confusion_matrix(output, batch_labels, conf_matrix)
-        preds = torch.argmax(output, 1)                                         # Convert to (num_samples, num_classes) -> (num_samples)
-        all_preds = torch.cat((all_preds, preds), dim=0)                        # Keep all preds to calculate kappa. 
-        all_labels = torch.cat((all_labels, batch_labels), dim=0)
-    TP, TN, FP, FN = get_confusion_matrix(conf_matrix)
-    if device != 'cpu':
-        all_preds = all_preds.cpu()
-        all_labels = all_labels.cpu()
+    model.eval()
+    with torch.no_grad():
+        for batch_samples, batch_labels in test_loader:
+            batch_samples, batch_labels = batch_samples.to(device), batch_labels.to(device)
+            output = model(batch_samples)
+            conf_matrix = confusion_matrix(output, batch_labels, conf_matrix)
+            preds = torch.argmax(output, 1)                                         # Convert to (num_samples, num_classes) -> (num_samples)
+            all_preds = torch.cat((all_preds, preds), dim=0)                        # Keep all preds to calculate kappa. 
+            all_labels = torch.cat((all_labels, batch_labels), dim=0)
+        TP, TN, FP, FN = get_confusion_matrix(conf_matrix)
+        if device != 'cpu':
+            all_preds = all_preds.cpu()
+            all_labels = all_labels.cpu()
     
     print('\nModel:', model_path)
     scores = calc_scores(all_labels, all_preds)
