@@ -272,6 +272,12 @@ class RSDataset(Dataset):
             model_name += self.tree + '_'
         return model_name
 
-# reykTr = RSDataset(name='reykjavik', mode='train', split='original')
-# pavHorTest = RSDataset(name='pavia', mode='test', split='horizontal')
-# sorted(Counter(pavHorTest.labels).items())
+if __name__ == "__main__":
+    # reykTr = RSDataset(name='reykjavik', mode='train', split='original')
+    # pavHorTest = RSDataset(name='pavia', mode='test', split='horizontal')
+    # sorted(Counter(pavHorTest.labels).items())
+    
+    """ Example for Usama """
+    pavia_train_set = RSDataset(name='pavia_full', mode='train', split='original')
+    pavia_test_set = RSDataset(name='pavia_full', mode='test', split='original')
+    print('Pavia dataset lengths, train set: {}, test set: {}'.format(len(pavia_train_set), len(pavia_test_set)))
